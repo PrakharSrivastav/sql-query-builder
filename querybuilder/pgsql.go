@@ -90,7 +90,7 @@ func (p *PgsqlQB) Get(columns []string, where map[string]interface{}, limit int,
 }
 
 func (p *PgsqlQB) Insert(columns []string, data []map[string]interface{}) (string, error) {
-	if b.table == "" {
+	if p.table == "" {
 		return "", errors.New("No table name provided")
 	}
 	if len(columns) == 0 {
@@ -105,7 +105,7 @@ func (p *PgsqlQB) Insert(columns []string, data []map[string]interface{}) (strin
 	fmt.Println(columns)
 	var bf bytes.Buffer
 	bf.WriteString("INSERT INTO ")
-	bf.WriteString(b.table)
+	bf.WriteString(p.table)
 	bf.WriteString(" (")
 	bf.WriteString(strings.Join(columns, ","))
 	bf.WriteString(") VALUES ")
