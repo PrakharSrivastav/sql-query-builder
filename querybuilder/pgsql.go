@@ -47,6 +47,7 @@ func (p *PgsqlQB) Create(m map[string]interface{}) (string, error) {
 	return bf.String(), nil
 }
 
+// Get creates a select clause in postgres dialect
 func (p *PgsqlQB) Get(columns []string, where map[string]interface{}, limit int, offset int) (string, error) {
 	if p.Table == "" {
 		return "", errors.New("No table name provided")
@@ -89,6 +90,7 @@ func (p *PgsqlQB) Get(columns []string, where map[string]interface{}, limit int,
 	return bf.String(), nil
 }
 
+// Insert creates an insert statement in postgres format
 func (p *PgsqlQB) Insert(columns []string, data []map[string]interface{}) (string, error) {
 	if p.Table == "" {
 		return "", errors.New("No table name provided")
@@ -131,6 +133,7 @@ func (p *PgsqlQB) Insert(columns []string, data []map[string]interface{}) (strin
 	return bf.String(), nil
 }
 
+// Update returns an update sql query
 func (p *PgsqlQB) Update(columns, where map[string]interface{}) (string, error) {
 	if p.Table == "" {
 		return "", errors.New("No table name provided")
