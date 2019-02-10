@@ -13,18 +13,18 @@ import (
 PgsqlQB generates sql query in postgres dialect
 */
 type PgsqlQB struct {
-	table     string
-	idPrimary bool
+	Table     string
+	IDPrimary bool
 }
 
 // Create generates a create table statement
 func (p *PgsqlQB) Create(m map[string]interface{}) (string, error) {
-	if p.table == "" {
+	if p.Table == "" {
 		return "", errors.New("table name required")
 	}
 	var bf bytes.Buffer
 	bf.WriteString("CREATE TABLE ")
-	bf.WriteString(p.table)
+	bf.WriteString(p.Table)
 	bf.WriteString(" (")
 
 	// This is for the consistency of the test cases. The maps in go are not ordered,
@@ -39,7 +39,7 @@ func (p *PgsqlQB) Create(m map[string]interface{}) (string, error) {
 		bf.WriteString(fmt.Sprintf("%s %s ,", k, getDatatype(m[k].(string))))
 	}
 
-	if p.idPrimary {
+	if p.IDPrimary {
 		bf.WriteString("id UUID primary key);")
 	} else {
 		bf.WriteString("id UUID);")
@@ -48,7 +48,7 @@ func (p *PgsqlQB) Create(m map[string]interface{}) (string, error) {
 }
 
 func (p *PgsqlQB) Get(columns []string, where map[string]interface{}, limit int, offset int) (string, error) {
-	if p.table == "" {
+	if p.Table == "" {
 		return "", errors.New("No table name provided")
 	}
 	if len(columns) == 0 {
@@ -59,7 +59,7 @@ func (p *PgsqlQB) Get(columns []string, where map[string]interface{}, limit int,
 	bf.WriteString("SELECT ")
 	bf.WriteString(strings.Join(columns, ","))
 	bf.WriteString(" FROM ")
-	bf.WriteString(p.table)
+	bf.WriteString(p.Table)
 	keys := make([]string, 0, len(where))
 	for k := range where {
 		keys = append(keys, k)
@@ -90,7 +90,7 @@ func (p *PgsqlQB) Get(columns []string, where map[string]interface{}, limit int,
 }
 
 func (p *PgsqlQB) Insert(columns []string, data []map[string]interface{}) (string, error) {
-	if p.table == "" {
+	if p.Table == "" {
 		return "", errors.New("No table name provided")
 	}
 	if len(columns) == 0 {
@@ -105,7 +105,7 @@ func (p *PgsqlQB) Insert(columns []string, data []map[string]interface{}) (strin
 	fmt.Println(columns)
 	var bf bytes.Buffer
 	bf.WriteString("INSERT INTO ")
-	bf.WriteString(p.table)
+	bf.WriteString(p.Table)
 	bf.WriteString(" (")
 	bf.WriteString(strings.Join(columns, ","))
 	bf.WriteString(") VALUES ")
@@ -132,7 +132,7 @@ func (p *PgsqlQB) Insert(columns []string, data []map[string]interface{}) (strin
 }
 
 func (p *PgsqlQB) Update(columns, where map[string]interface{}) (string, error) {
-	if p.table == "" {
+	if p.Table == "" {
 		return "", errors.New("No table name provided")
 	}
 	if len(columns) == 0 {
@@ -140,7 +140,7 @@ func (p *PgsqlQB) Update(columns, where map[string]interface{}) (string, error) 
 	}
 	var bf bytes.Buffer
 	bf.WriteString("UPDATE ")
-	bf.WriteString(p.table)
+	bf.WriteString(p.Table)
 	bf.WriteString(" SET ")
 
 	// Set columns

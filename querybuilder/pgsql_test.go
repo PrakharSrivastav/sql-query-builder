@@ -70,8 +70,8 @@ func TestPgsqlQB_Create(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			qb := &PgsqlQB{
-				table:     tt.fields.table,
-				idPrimary: tt.fields.idPrimary,
+				Table:     tt.fields.table,
+				IDPrimary: tt.fields.idPrimary,
 			}
 			got, err := qb.Create(tt.args.param)
 			if (err != nil) != tt.wantErr {
@@ -173,8 +173,8 @@ func TestPgsqlQB_Get(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			b := &PgsqlQB{
-				table:     tt.fields.table,
-				idPrimary: tt.fields.idPrimary,
+				Table:     tt.fields.table,
+				IDPrimary: tt.fields.idPrimary,
 			}
 			got, err := b.Get(tt.args.columns, tt.args.where, tt.args.limit, tt.args.offset)
 			if (err != nil) != tt.wantErr {
@@ -223,8 +223,8 @@ func TestPgsqlQB_Update(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			b := &PgsqlQB{
-				table:     tt.fields.table,
-				idPrimary: tt.fields.idPrimary,
+				Table:     tt.fields.table,
+				IDPrimary: tt.fields.idPrimary,
 			}
 			got, err := b.Update(tt.args.columns, tt.args.where)
 			if (err != nil) != tt.wantErr {
@@ -279,8 +279,8 @@ func TestPgsqlQB_Insert(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			b := &PgsqlQB{
-				table:     tt.fields.table,
-				idPrimary: tt.fields.idPrimary,
+				Table:     tt.fields.table,
+				IDPrimary: tt.fields.idPrimary,
 			}
 			got, err := b.Insert(tt.args.columns, tt.args.data)
 			if (err != nil) != tt.wantErr {
