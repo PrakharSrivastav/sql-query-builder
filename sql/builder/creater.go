@@ -2,7 +2,7 @@ package builder
 
 // Creater helps to generate create sql statements
 type Creater interface {
-	SetColumns(cloumns ...Columns) Creater
+	SetColumns([]Columns) Creater
 	Table(table string) Creater
 	Build() string
 }
