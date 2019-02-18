@@ -23,7 +23,7 @@ func TestSimpleSelect(t *testing.T) {
 
 	sql = c.Select("field1", "field2").From("xyz").Build()
 	assert.Equal(t, "SELECT field1, field2 FROM xyz ;", sql)
-
+ 
 	sql = c.Select("field1", "field2").From("xyz", "abc").Build()
 	assert.Equal(t, "SELECT field1, field2 FROM xyz, abc ;", sql)
 
