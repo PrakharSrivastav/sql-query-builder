@@ -1,4 +1,4 @@
-package pgsql
+package ansi
 
 import (
 	"testing"
@@ -8,7 +8,7 @@ import (
 
 func TestNewPgSQLBuilder(t *testing.T) {
 	t.Parallel()
-	sql, err := NewPgSQLBuilder()
+	sql, err := NewANSIBuilder()
 	assert.Nil(t, err)
 	assert.NotNil(t, sql)
 }

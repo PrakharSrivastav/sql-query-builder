@@ -1,11 +1,11 @@
-package pgsql
+package ansi
 
 import (
 	"bytes"
 	"fmt"
 	"strings"
 
-	"github.com/PrakharSrivastav/sql-query-builder/sql/builder"
+	"github.com/PrakharSrivastav/sql-query-builder/qb/builder"
 )
 
 type Creater struct {

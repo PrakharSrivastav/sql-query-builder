@@ -2,14 +2,14 @@
 Package SQL helps to generate sql queries in different dialects.
 This package can be best used with the scenarios where the structure of the domains models is unknown beforehand.
 */
-package sql
+package qb
 
 import (
 	"errors"
 	"sync"
 
-	"github.com/PrakharSrivastav/sql-query-builder/sql/core"
-	"github.com/PrakharSrivastav/sql-query-builder/sql/pgsql"
+	"github.com/PrakharSrivastav/sql-query-builder/qb/ansi"
+	"github.com/PrakharSrivastav/sql-query-builder/qb/core"
 )
 
 var once sync.Once
@@ -33,8 +33,8 @@ func NewSingletonQueryBuilder(driver int) (*core.SQL, error) {
 
 func dbFactory(driver int) (*core.SQL, error) {
 	switch driver {
-	case core.PGSQL:
-		return pgsql.NewPgSQLBuilder()
+	case core.ANSI:
+		return ansi.NewANSIBuilder()
 	default:
 		return nil, errors.New("Unsupported database driver")
 	}

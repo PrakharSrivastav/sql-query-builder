@@ -1,9 +1,9 @@
-package pgsql
+package ansi
 
 import (
 	"testing"
 
-	"github.com/PrakharSrivastav/sql-query-builder/sql/builder"
+	"github.com/PrakharSrivastav/sql-query-builder/qb/builder"
 
 	"github.com/stretchr/testify/assert"
 )

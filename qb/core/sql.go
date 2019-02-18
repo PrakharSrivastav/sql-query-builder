@@ -1,9 +1,11 @@
 package core
 
-import "github.com/PrakharSrivastav/sql-query-builder/sql/builder"
+import "github.com/PrakharSrivastav/sql-query-builder/qb/builder"
 
 const (
 	_ = iota
+	// ANSI SQL version. Other implementation
+	ANSI
 	// PGSQL adheres to Postgres dialect
 	PGSQL
 	// MYSQL adheres to MySql dialect

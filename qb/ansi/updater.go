@@ -1,4 +1,4 @@
-package pgsql
+package ansi
 
 import (
 	"bytes"
@@ -6,7 +6,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/PrakharSrivastav/sql-query-builder/sql/builder"
+	"github.com/PrakharSrivastav/sql-query-builder/qb/builder"
 )
 
 // Updater helps in creating update sql queries

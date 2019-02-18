@@ -1,14 +1,14 @@
-package pgsql
+package ansi
 
 import (
-	"github.com/PrakharSrivastav/sql-query-builder/sql/core"
+	"github.com/PrakharSrivastav/sql-query-builder/qb/core"
 )
 
 const (
 	seperator = ", "
 )
 
-func NewPgSQLBuilder() (*core.SQL, error) {
+func NewANSIBuilder() (*core.SQL, error) {
 	return &core.SQL{
 		Creater:  new(Creater),
 		Inserter: new(Inserter),

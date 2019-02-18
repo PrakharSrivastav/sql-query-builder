@@ -1,4 +1,4 @@
-package pgsql
+package ansi
 
 import (
 	"bytes"
@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/PrakharSrivastav/sql-query-builder/sql/builder"
+	"github.com/PrakharSrivastav/sql-query-builder/qb/builder"
 )
 
 // Reader implements interface to create select clauses

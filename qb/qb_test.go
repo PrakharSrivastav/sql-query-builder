@@ -2,12 +2,12 @@
 Package querybuilder helps to generate sql queries in different drivers.
 This package can be best used with the scenarios where the structure of the domains models is unknown beforehand.
 */
-package sql
+package qb
 
 import (
 	"testing"
 
-	"github.com/PrakharSrivastav/sql-query-builder/sql/core"
+	"github.com/PrakharSrivastav/sql-query-builder/qb/core"
 )
 
 func TestNewQueryBuilder(t *testing.T) {
@@ -22,7 +22,7 @@ func TestNewQueryBuilder(t *testing.T) {
 	}{
 		{
 			name:    "ok-driver",
-			args:    args{driver: core.PGSQL},
+			args:    args{driver: core.ANSI},
 			wantErr: false,
 		},
 		{
@@ -54,7 +54,7 @@ func TestNewSingletonQueryBuilder(t *testing.T) {
 	}{
 		{
 			name:    "ok-driver",
-			args:    args{driver: core.PGSQL},
+			args:    args{driver: core.ANSI},
 			wantErr: false, // set a driver first, this will persist for next calls
 		},
 		{
