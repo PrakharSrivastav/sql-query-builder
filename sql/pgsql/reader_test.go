@@ -23,7 +23,7 @@ func TestSimpleSelect(t *testing.T) {
 
 	sql = c.Select("field1", "field2").From("xyz").Build()
 	assert.Equal(t, "SELECT field1, field2 FROM xyz ;", sql)
- 
+
 	sql = c.Select("field1", "field2").From("xyz", "abc").Build()
 	assert.Equal(t, "SELECT field1, field2 FROM xyz, abc ;", sql)
 
@@ -44,11 +44,11 @@ func TestExpressionBuilder(t *testing.T) {
 	)
 
 	whr := new(Expression)
-	whr.Where(builder.Clause{Left: "field1", Operator: "=", Right: "'abc'"}).
-		And(builder.Clause{Left: "field2", Operator: "=", Right: "'456'"})
+	whr.Where(builder.Clause{Left: "field1", Operator: "=", Right: "abc"}).
+		And(builder.Clause{Left: "field2", Operator: "=", Right: 456})
 	sql.Condition(whr)
 	// ex := new(builder.Expression)
-	assert.Equal(t, "SELECT a.field1, b.field2 FROM table1 as a, table2 as b WHERE ( field1 = 'abc'  ) AND ( field2 = '456' ) ;", sql.Build())
+	assert.Equal(t, "SELECT a.field1, b.field2 FROM table1 as a, table2 as b WHERE ( field1 = 'abc'  ) AND ( field2 = 456 ) ;", sql.Build())
 }
 
 func TestRawWhereClause(t *testing.T) {
@@ -60,11 +60,11 @@ func TestRawWhereClause(t *testing.T) {
 	)
 
 	whr := new(Expression)
-	clause := whr.Where(builder.Clause{Left: "field1", Operator: "=", Right: "'abc'"}).
-		And(builder.Clause{Left: "field2", Operator: "=", Right: "'456'"}).Express()
+	clause := whr.Where(builder.Clause{Left: "field1", Operator: "=", Right: "abc"}).
+		And(builder.Clause{Left: "field2", Operator: "=", Right: 456}).Express()
 	sql.RawCondition(clause)
 	// ex := new(builder.Expression)
-	assert.Equal(t, "SELECT a.field1, b.field2 FROM table1 as a, table2 as b WHERE ( field1 = 'abc'  ) AND ( field2 = '456' ) ;", sql.Build())
+	assert.Equal(t, "SELECT a.field1, b.field2 FROM table1 as a, table2 as b WHERE ( field1 = 'abc'  ) AND ( field2 = 456 ) ;", sql.Build())
 }
 
 func TestLimitAndOffset(t *testing.T) {

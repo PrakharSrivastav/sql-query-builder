@@ -13,7 +13,12 @@ type Expression struct {
 }
 
 func (e *Expression) And(c builder.Clause) builder.Expression {
-	e.b.WriteString(fmt.Sprintf("%s %s %s %s %s", " AND (", c.Left, c.Operator, c.Right, ")"))
+	switch c.Right.(type) {
+	case string:
+		e.b.WriteString(fmt.Sprintf("%s %s %s '%s' %s", " AND (", c.Left, c.Operator, c.Right, ")"))
+	default:
+		e.b.WriteString(fmt.Sprintf("%s %s %s %v %s", " AND (", c.Left, c.Operator, c.Right, ")"))
+	}
 	return e
 }
 
@@ -32,12 +37,23 @@ func (e *Expression) NotIn(field string, items ...string) builder.Expression {
 }
 
 func (e *Expression) Or(c builder.Clause) builder.Expression {
-	e.b.WriteString(fmt.Sprintf("%s %s %s %s %s", " OR (", c.Left, c.Operator, c.Right, ")"))
+	switch c.Right.(type) {
+	case string:
+		e.b.WriteString(fmt.Sprintf("%s %s %s '%s' %s", " OR (", c.Left, c.Operator, c.Right, ")"))
+	default:
+		e.b.WriteString(fmt.Sprintf("%s %s %s %v %s", " OR (", c.Left, c.Operator, c.Right, ")"))
+	}
 	return e
 }
 
 func (e *Expression) Where(c builder.Clause) builder.Expression {
 	e.b.Reset()
-	e.b.WriteString(fmt.Sprintf("%s %s %s %s %s", " WHERE (", c.Left, c.Operator, c.Right, " )"))
+	switch c.Right.(type) {
+	case string:
+		e.b.WriteString(fmt.Sprintf("%s %s %s '%s' %s", " WHERE (", c.Left, c.Operator, c.Right, " )"))
+	default:
+		e.b.WriteString(fmt.Sprintf("%s %s %s %v %s", " WHERE (", c.Left, c.Operator, c.Right, " )"))
+	}
+
 	return e
 }

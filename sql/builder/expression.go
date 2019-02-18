@@ -12,5 +12,5 @@ type Expression interface {
 type Clause struct {
 	Left     string
 	Operator string
-	Right    string
+	Right    interface{}
 }

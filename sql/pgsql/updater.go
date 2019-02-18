@@ -3,6 +3,7 @@ package pgsql
 import (
 	"bytes"
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/PrakharSrivastav/sql-query-builder/sql/builder"
@@ -39,13 +40,21 @@ func (u *Updater) RawCondition(s string) builder.Updater {
 // Eg Set column1 = 'value1' , column2 = 'value2' , column3 = 3.21
 func (u *Updater) Set(values map[string]interface{}) builder.Updater {
 	u.sql.WriteString(" SET ")
-	setClause := make([]string, 0, len(values))
-	for key, value := range values {
-		switch value.(type) {
+	argLength := len(values)
+	columnNames := make([]string, 0, argLength)
+	for key := range values {
+		columnNames = append(columnNames, key)
+	}
+	// keys are being sorted to maintain consistency in the test cases
+	sort.Strings(columnNames)
+
+	setClause := make([]string, 0, argLength)
+	for _, item := range columnNames {
+		switch values[item].(type) {
 		case string:
-			setClause = append(setClause, fmt.Sprintf("%s = '%s'", key, value))
+			setClause = append(setClause, fmt.Sprintf("%s='%s'", item, values[item]))
 		default:
-			setClause = append(setClause, fmt.Sprintf("%s = %s", key, value))
+			setClause = append(setClause, fmt.Sprintf("%s=%v", item, values[item]))
 		}
 	}
 	u.sql.WriteString(strings.Join(setClause, seperator))
