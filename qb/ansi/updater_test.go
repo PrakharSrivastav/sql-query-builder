@@ -15,7 +15,7 @@ func TestSimpleUpdateClause(t *testing.T) {
 	assert.NotNil(t, u)
 	sql := u.Update("xyz").Build()
 	assert.NotNil(t, sql)
-	assert.Equal(t, "UPDATE table xyz ;", sql)
+	assert.Equal(t, "UPDATE xyz ;", sql)
 
 	columns := make(map[string]interface{})
 	columns["field1"] = "value1"
@@ -24,7 +24,7 @@ func TestSimpleUpdateClause(t *testing.T) {
 	sql = u.Update("xyz").Set(columns).Build()
 
 	assert.NotNil(t, sql)
-	assert.Equal(t, "UPDATE table xyz SET field1='value1', field2=123, field3=321.123 ;", sql)
+	assert.Equal(t, "UPDATE xyz SET field1='value1', field2=123, field3=321.123 ;", sql)
 }
 
 func TestSUpdateWithRawCondition(t *testing.T) {
@@ -38,7 +38,7 @@ func TestSUpdateWithRawCondition(t *testing.T) {
 	sql := u.Update("xyz").Set(columns).RawCondition("WHERE field1='another value'").Build()
 
 	assert.NotNil(t, sql)
-	assert.Equal(t, "UPDATE table xyz SET field1='value1', field2=123, field3=321.123 WHERE field1='another value'  ;", sql)
+	assert.Equal(t, "UPDATE xyz SET field1='value1', field2=123, field3=321.123 WHERE field1='another value'  ;", sql)
 }
 
 func TestUpdateWithCondition(t *testing.T) {
@@ -70,5 +70,5 @@ func TestUpdateWithCondition(t *testing.T) {
 	assert.NotNil(t, updateSQL)
 	assert.NotEmpty(t, updateSQL)
 
-	assert.Equal(t, "UPDATE table xyz SET field1='value1', field2=123, field3=321.123 WHERE ( field1 = 'value1'  ) AND ( field2 > 12.2 ) ;", updateSQL)
+	assert.Equal(t, "UPDATE xyz SET field1='value1', field2=123, field3=321.123 WHERE ( field1 = 'value1'  ) AND ( field2 > 12.2 ) ;", updateSQL)
 }

@@ -65,7 +65,6 @@ func (u *Updater) Set(values map[string]interface{}) builder.Updater {
 // UPDATE table <table>
 func (u *Updater) Update(table string) builder.Updater {
 	u.sql.Reset()
-	u.sql.WriteString("UPDATE table ")
-	u.sql.WriteString(table)
+	u.sql.WriteString(fmt.Sprintf("UPDATE %s", table))
 	return u
 }
