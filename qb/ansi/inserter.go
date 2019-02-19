@@ -15,6 +15,7 @@ type Inserter struct {
 	sql bytes.Buffer
 }
 
+// Build yeilds the final sql statement
 func (i *Inserter) Build() string {
 	sql := i.sql.String()
 	sql = strings.TrimSuffix(sql, ",")
@@ -22,6 +23,7 @@ func (i *Inserter) Build() string {
 	return sql
 }
 
+// Columns defines the set of columns for which inserts will happen
 func (i *Inserter) Columns(s []string) builder.Inserter {
 	sort.Strings(s)
 	i.sql.WriteString(strings.Join(s, seperator))
@@ -29,12 +31,15 @@ func (i *Inserter) Columns(s []string) builder.Inserter {
 	return i
 }
 
+// Table sets the table name
 func (i *Inserter) Table(s string) builder.Inserter {
 	i.sql.Reset()
 	i.sql.WriteString(fmt.Sprintf("INSERT INTO %s ( ", s))
 	return i
 }
 
+// Values evaluate the insert values clause. Should be used multiple times to create a multi-insert clause.
+// Check tests for usage
 func (i *Inserter) Values(v builder.Value) builder.Inserter {
 	fields := make([]string, 0, len(v))
 	values := make([]string, 0, len(v))

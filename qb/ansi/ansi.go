@@ -8,6 +8,7 @@ const (
 	seperator = ", "
 )
 
+// NewANSIBuilder creates a builder that conforms to ANSI
 func NewANSIBuilder() (*core.SQL, error) {
 	return &core.SQL{
 		Creater:  new(Creater),

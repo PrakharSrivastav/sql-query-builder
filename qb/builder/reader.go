@@ -13,6 +13,7 @@ type Reader interface {
 	Build() string
 }
 
+// Alias is a struct to provide a table name alias
 type Alias struct {
 	Name  string
 	Alias string

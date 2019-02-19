@@ -8,14 +8,17 @@ import (
 	"github.com/PrakharSrivastav/sql-query-builder/qb/builder"
 )
 
+// Creater helps in creating a CREATE TABLE command
 type Creater struct {
 	sql bytes.Buffer
 }
 
+// Build yeilds the final sql statement
 func (c *Creater) Build() string {
 	return c.sql.String()
 }
 
+// SetColumns defines the column definition
 func (c *Creater) SetColumns(c1 []builder.Columns) builder.Creater {
 
 	columnDefs := make([]string, 0, len(c1))
@@ -30,6 +33,7 @@ func (c *Creater) SetColumns(c1 []builder.Columns) builder.Creater {
 	return c
 }
 
+// Table sets the table name
 func (c *Creater) Table(s string) builder.Creater {
 	c.sql.Reset()
 	c.sql.WriteString(fmt.Sprintf("CREATE TABLE %s ", s))
