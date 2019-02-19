@@ -79,3 +79,45 @@ func (r *Reader) RawCondition(expression string) builder.Reader {
 	r.sql.WriteString(expression)
 	return r
 }
+
+// InnerJoin creates an inner join clause
+func (r *Reader) InnerJoin(table string) builder.Reader {
+	r.sql.WriteString(" INNER JOIN ")
+	r.sql.WriteString(table)
+	return r
+}
+
+// LeftJoin creates a Left Join clause
+func (r *Reader) LeftJoin(table string) builder.Reader {
+	r.sql.WriteString(" LEFT JOIN ")
+	r.sql.WriteString(table)
+	return r
+}
+
+// RightJoin creates a Right Join clause
+func (r *Reader) RightJoin(table string) builder.Reader {
+	r.sql.WriteString(" RIGHT JOIN ")
+	r.sql.WriteString(table)
+	return r
+}
+
+// On creates an on clause
+func (r *Reader) On(condition string) builder.Reader {
+	r.sql.WriteString(" ON ")
+	r.sql.WriteString(condition)
+	return r
+}
+
+// Having creates a having clause
+func (r *Reader) Having(condition string) builder.Reader {
+	r.sql.WriteString(" HAVING ")
+	r.sql.WriteString(condition)
+	return r
+}
+
+// GroupBy creates a group by clause on the input fields
+func (r *Reader) GroupBy(fields []string) builder.Reader {
+	r.sql.WriteString(" GROUP BY ")
+	r.sql.WriteString(strings.Join(fields, seperator))
+	return r
+}

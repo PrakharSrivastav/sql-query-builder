@@ -2,14 +2,20 @@ package builder
 
 // Reader provides a contract to be implemented by all sql generators
 type Reader interface {
-	Select(columns ...string) Reader
-	From(tables ...string) Reader
-	FromAlias(alias ...Alias) Reader
-	OrderBy(columns ...string) Reader
-	Limit(limit int) Reader
-	Offset(offset int) Reader
-	Condition(condition Expression) Reader
-	RawCondition(condition string) Reader
+	Select(...string) Reader
+	From(...string) Reader
+	FromAlias(...Alias) Reader
+	OrderBy(...string) Reader
+	Limit(int) Reader
+	Offset(int) Reader
+	Condition(Expression) Reader
+	RawCondition(string) Reader
+	InnerJoin(string) Reader
+	LeftJoin(string) Reader
+	RightJoin(string) Reader
+	On(string) Reader
+	GroupBy([]string) Reader
+	Having(string) Reader
 	Build() string
 }
 

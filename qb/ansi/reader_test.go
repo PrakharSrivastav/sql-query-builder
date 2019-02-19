@@ -82,3 +82,55 @@ func TestOrderBy(t *testing.T) {
 
 	assert.Equal(t, "SELECT field1, field2 FROM xyz ORDER BY field1 LIMIT 10 OFFSET 20 ;", sql)
 }
+
+func TestLeftJoin(t *testing.T) {
+	t.Parallel()
+	r := new(Reader)
+	sql := r.
+		Select("a.field1", "b.field2").
+		FromAlias(builder.Alias{Name: "table1", Alias: "a"}).
+		LeftJoin("table2 as b").
+		On("a.field3 = b.field2").Build()
+
+	assert.NotNil(t, sql)
+	assert.NotEmpty(t, sql)
+	assert.Equal(t, "SELECT a.field1, b.field2 FROM table1 as a LEFT JOIN table2 as b ON a.field3 = b.field2 ;", sql)
+}
+
+func TestRightJoin(t *testing.T) {
+	t.Parallel()
+	r := new(Reader)
+	sql := r.
+		Select("a.field1", "b.field2").
+		FromAlias(builder.Alias{Name: "table1", Alias: "a"}).
+		RightJoin("table2 as b").
+		On("a.field3 = b.field2").Build()
+
+	assert.NotNil(t, sql)
+	assert.NotEmpty(t, sql)
+	assert.Equal(t, "SELECT a.field1, b.field2 FROM table1 as a RIGHT JOIN table2 as b ON a.field3 = b.field2 ;", sql)
+}
+
+func TestInnerJoin(t *testing.T) {
+	t.Parallel()
+	r := new(Reader)
+	sql := r.
+		Select("a.field1", "b.field2").
+		FromAlias(builder.Alias{Name: "table1", Alias: "a"}).
+		InnerJoin("table2 as b").
+		On("a.field3 = b.field2").Build()
+
+	assert.NotNil(t, sql)
+	assert.NotEmpty(t, sql)
+	assert.Equal(t, "SELECT a.field1, b.field2 FROM table1 as a INNER JOIN table2 as b ON a.field3 = b.field2 ;", sql)
+}
+
+func TestGroupBy(t *testing.T) {
+	t.Parallel()
+	r := new(Reader)
+	fields := []string{"field1", "field2"}
+	sql := r.Select("field1", "field2", "field3").From("xyz").GroupBy(fields).Having("field1 > 500").Build()
+	assert.NotNil(t, sql)
+	assert.NotEmpty(t, sql)
+	assert.Equal(t, "SELECT field1, field2, field3 FROM xyz GROUP BY field1, field2 HAVING field1 > 500 ;", sql)
+}
