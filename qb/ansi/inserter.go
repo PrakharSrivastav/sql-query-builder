@@ -9,55 +9,66 @@ import (
 	"github.com/PrakharSrivastav/sql-query-builder/qb/builder"
 )
 
-// Inserter creates a insert sql statement
-// INSERT INTO table () values (),(),()
+// Inserter creates a parameterized INSERT statement.
+// Generates: INSERT INTO table ( c1, c2 ) values (?, ?),(?, ?)...
 type Inserter struct {
-	sql bytes.Buffer
+	sql     bytes.Buffer
+	args    []any
+	columns []string
+	errs    []error
 }
 
-// Build yeilds the final sql statement
-func (i *Inserter) Build() string {
-	sql := i.sql.String()
-	sql = strings.TrimSuffix(sql, ",")
-	sql = sql + ";"
-	return sql
+// Build returns the SQL, the args (in row order, sorted by column name)
+// and any identifier-validation error.
+func (i *Inserter) Build() (string, []any, error) {
+	sql := strings.TrimSuffix(i.sql.String(), ",") + ";"
+	args := append([]any(nil), i.args...)
+	return sql, args, joinErrors(i.errs)
 }
 
-// Columns defines the set of columns for which inserts will happen
+// Columns sets the column list for the insert. Names are sorted so the
+// Values map can be looked up deterministically.
 func (i *Inserter) Columns(s []string) builder.Inserter {
-	sort.Strings(s)
-	i.sql.WriteString(strings.Join(s, seperator))
+	cols := append([]string(nil), s...)
+	sort.Strings(cols)
+	for _, c := range cols {
+		if err := validateIdentifier(c); err != nil {
+			i.errs = append(i.errs, err)
+		}
+	}
+	i.columns = cols
+	i.sql.WriteString(strings.Join(cols, seperator))
 	i.sql.WriteString(" ) values ")
 	return i
 }
 
-// Table sets the table name
+// Table sets the destination table name.
 func (i *Inserter) Table(s string) builder.Inserter {
 	i.sql.Reset()
+	i.args = i.args[:0]
+	i.columns = nil
+	i.errs = nil
+	if err := validateIdentifier(s); err != nil {
+		i.errs = append(i.errs, err)
+	}
 	i.sql.WriteString(fmt.Sprintf("INSERT INTO %s ( ", s))
 	return i
 }
 
-// Values evaluate the insert values clause. Should be used multiple times to create a multi-insert clause.
-// Check tests for usage
+// Values appends one row of placeholders, in the order set by Columns,
+// and captures the values into args.
 func (i *Inserter) Values(v builder.Value) builder.Inserter {
-	fields := make([]string, 0, len(v))
-	values := make([]string, 0, len(v))
-
-	for item := range v {
-		fields = append(fields, item)
+	if len(i.columns) == 0 {
+		i.errs = append(i.errs, fmt.Errorf("Values called before Columns"))
+		return i
 	}
-	sort.Strings(fields)
-	for _, field := range fields {
-		switch v[field].(type) {
-		case string:
-			values = append(values, fmt.Sprintf("'%s'", v[field].(string)))
-		default:
-			values = append(values, fmt.Sprintf("%v", v[field]))
-		}
+	placeholders := make([]string, 0, len(i.columns))
+	for _, col := range i.columns {
+		placeholders = append(placeholders, "?")
+		i.args = append(i.args, v[col])
 	}
-
-	joinedValues := strings.Join(values, seperator)
-	i.sql.WriteString(strings.Join([]string{"(", joinedValues, "),"}, ""))
+	i.sql.WriteString("(")
+	i.sql.WriteString(strings.Join(placeholders, seperator))
+	i.sql.WriteString("),")
 	return i
 }

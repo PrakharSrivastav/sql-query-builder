@@ -8,7 +8,26 @@ import (
 	"testing"
 
 	"github.com/PrakharSrivastav/sql-query-builder/qb/core"
+
+	"github.com/stretchr/testify/assert"
 )
+
+func TestNewQueryBuilder_AllDialects(t *testing.T) {
+	t.Parallel()
+	for _, driver := range []int{core.ANSI, core.PGSQL, core.MYSQL, core.SQLITE} {
+		b, err := NewQueryBuilder(driver)
+		assert.NoError(t, err, "driver %d", driver)
+		assert.NotNil(t, b)
+		assert.NotNil(t, b.NewExpression)
+	}
+}
+
+func TestNewQueryBuilder_UnsupportedDriverErrors(t *testing.T) {
+	t.Parallel()
+	_, err := NewQueryBuilder(99)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "unsupported dialect")
+}
 
 func TestNewQueryBuilder(t *testing.T) {
 	t.Parallel()

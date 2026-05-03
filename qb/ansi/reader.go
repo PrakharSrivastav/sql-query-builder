@@ -11,12 +11,16 @@ import (
 
 // Reader implements interface to create select clauses
 type Reader struct {
-	sql bytes.Buffer
+	sql  bytes.Buffer
+	args []any
+	errs []error
 }
 
 // Select builds the select clause for sql
 func (r *Reader) Select(s ...string) builder.Reader {
 	r.sql.Reset()
+	r.args = r.args[:0]
+	r.errs = nil
 	r.sql.WriteString("SELECT ")
 	r.sql.WriteString(strings.Join(s, seperator))
 	return r
@@ -41,10 +45,12 @@ func (r *Reader) FromAlias(alias ...builder.Alias) builder.Reader {
 	return r
 }
 
-// Build compiles the expression and generates a sql equivalent of sql
-func (r *Reader) Build() string {
+// Build compiles the SQL, returns it with the captured args slice and
+// any identifier-validation error.
+func (r *Reader) Build() (string, []any, error) {
 	r.sql.WriteString(" ;")
-	return r.sql.String()
+	args := append([]any(nil), r.args...)
+	return r.sql.String(), args, joinErrors(r.errs)
 }
 
 // Limit adds limit clause to the sql
@@ -66,15 +72,20 @@ func (r *Reader) OrderBy(s ...string) builder.Reader {
 	return r
 }
 
-// Condition to implement the where clause with Expressions
+// Condition merges an Expression's SQL fragment and args into the reader.
 func (r *Reader) Condition(expression builder.Expression) builder.Reader {
-	r.sql.WriteString(expression.Express())
+	sql, args, err := expression.Express()
+	r.sql.WriteString(sql)
+	r.args = append(r.args, args...)
+	if err != nil {
+		r.errs = append(r.errs, err)
+	}
 	return r
 }
 
-// RawCondition to add where clause in string format
-// Assumes that a well formatted where clause is provided.
-// The input expression input should start with where
+// RawCondition appends a caller-supplied where clause verbatim. The
+// caller is responsible for safety; use Condition with a Clause for
+// untrusted input.
 func (r *Reader) RawCondition(expression string) builder.Reader {
 	r.sql.WriteString(expression)
 	return r

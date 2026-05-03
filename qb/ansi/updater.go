@@ -9,26 +9,35 @@ import (
 	"github.com/PrakharSrivastav/sql-query-builder/qb/builder"
 )
 
-// Updater helps in creating update sql queries
+// Updater helps in creating parameterized UPDATE statements.
 type Updater struct {
-	sql bytes.Buffer
+	sql  bytes.Buffer
+	args []any
+	errs []error
 }
 
-// Build returns the compiled update statement
-func (u *Updater) Build() string {
+// Build returns the SQL, args (SET values first, then condition args)
+// and any identifier-validation error.
+func (u *Updater) Build() (string, []any, error) {
 	u.sql.WriteString(" ;")
-	return u.sql.String()
+	args := append([]any(nil), u.args...)
+	return u.sql.String(), args, joinErrors(u.errs)
 }
 
-// Condition accepts input of type buider.Expressiong to evaluate a where clause
+// Condition merges an Expression's SQL fragment and args.
 func (u *Updater) Condition(e builder.Expression) builder.Updater {
-	u.sql.WriteString(e.Express())
+	sql, args, err := e.Express()
+	u.sql.WriteString(sql)
+	u.args = append(u.args, args...)
+	if err != nil {
+		u.errs = append(u.errs, err)
+	}
 	return u
 }
 
-// RawCondition to add where clause in string format
-// Assumes that a well formatted where clause is provided.
-// The input expression input should start with where
+// RawCondition appends a caller-supplied where clause verbatim. Caller
+// is responsible for safety; use Condition with a Clause for untrusted
+// input.
 func (u *Updater) RawCondition(s string) builder.Updater {
 	if s != "" {
 		u.sql.WriteString(strings.Join([]string{" ", s, " "}, ""))
@@ -36,35 +45,37 @@ func (u *Updater) RawCondition(s string) builder.Updater {
 	return u
 }
 
-// Set sets the columns values for update
-// Eg Set column1 = 'value1' , column2 = 'value2' , column3 = 3.21
+// Set emits SET col1 = ?, col2 = ? and captures values into args in
+// sorted column order.
 func (u *Updater) Set(values map[string]interface{}) builder.Updater {
 	u.sql.WriteString(" SET ")
-	argLength := len(values)
-	columnNames := make([]string, 0, argLength)
+	columnNames := make([]string, 0, len(values))
 	for key := range values {
 		columnNames = append(columnNames, key)
 	}
-	// keys are being sorted to maintain consistency in the test cases
 	sort.Strings(columnNames)
 
-	setClause := make([]string, 0, argLength)
-	for _, item := range columnNames {
-		switch values[item].(type) {
-		case string:
-			setClause = append(setClause, fmt.Sprintf("%s='%s'", item, values[item]))
-		default:
-			setClause = append(setClause, fmt.Sprintf("%s=%v", item, values[item]))
+	setClauses := make([]string, 0, len(columnNames))
+	for _, name := range columnNames {
+		if err := validateIdentifier(name); err != nil {
+			u.errs = append(u.errs, err)
+			continue
 		}
+		setClauses = append(setClauses, fmt.Sprintf("%s=?", name))
+		u.args = append(u.args, values[name])
 	}
-	u.sql.WriteString(strings.Join(setClause, seperator))
+	u.sql.WriteString(strings.Join(setClauses, seperator))
 	return u
 }
 
-// Update clause takes the table name to prepare the correct update clause
-// UPDATE table <table>
+// Update sets the target table.
 func (u *Updater) Update(table string) builder.Updater {
 	u.sql.Reset()
+	u.args = u.args[:0]
+	u.errs = nil
+	if err := validateIdentifier(table); err != nil {
+		u.errs = append(u.errs, err)
+	}
 	u.sql.WriteString(fmt.Sprintf("UPDATE %s", table))
 	return u
 }

@@ -11,20 +11,20 @@ import (
 func TestSimpleInsert(t *testing.T) {
 	t.Parallel()
 	i := new(Inserter)
-	assert.NotNil(t, i)
 
-	sql := i.Table("xyz").Columns([]string{"field1", "field2"}).Values(builder.Value{
+	sql, args, err := i.Table("xyz").Columns([]string{"field1", "field2"}).Values(builder.Value{
 		"field1": 123,
 		"field2": "123",
 	}).Build()
 
-	assert.Equal(t, sql, "INSERT INTO xyz ( field1, field2 ) values (123, '123');")
+	assert.NoError(t, err)
+	assert.Equal(t, "INSERT INTO xyz ( field1, field2 ) values (?, ?);", sql)
+	assert.Equal(t, []any{123, "123"}, args)
 }
 
 func TestMultiInsert(t *testing.T) {
 	t.Parallel()
 	i := new(Inserter)
-	assert.NotNil(t, i)
 
 	tableName := "xyz"
 	columns := []string{"field1", "field2"}
@@ -33,40 +33,39 @@ func TestMultiInsert(t *testing.T) {
 		{"field1": 345, "field2": "asdf"},
 		{"field1": 123, "field2": "qwer"},
 		{"field1": 234, "field2": "zxcv"},
-		{"field1": 456, "field2": "fgjh"},
-		{"field1": 567, "field2": "ghjk"},
-		{"field1": 678, "field2": "kjgg"},
 	}
-	sql := i.Table(tableName).Columns(columns)
+	stmt := i.Table(tableName).Columns(columns)
 	for _, item := range data {
-		sql.Values(item)
+		stmt.Values(item)
 	}
-	builtSQL := sql.Build()
-	assert.NotNil(t, builtSQL)
-	assert.Equal(t, "INSERT INTO xyz ( field1, field2 ) values (345, 'asdf'),(123, 'qwer'),(234, 'zxcv'),(456, 'fgjh'),(567, 'ghjk'),(678, 'kjgg');", builtSQL)
+	sql, args, err := stmt.Build()
+	assert.NoError(t, err)
+	assert.Equal(t, "INSERT INTO xyz ( field1, field2 ) values (?, ?),(?, ?),(?, ?);", sql)
+	assert.Equal(t, []any{345, "asdf", 123, "qwer", 234, "zxcv"}, args)
+}
+
+func TestInsertValuesBeforeColumnsErrors(t *testing.T) {
+	t.Parallel()
+	i := new(Inserter)
+	_, _, err := i.Table("xyz").Values(builder.Value{"field1": 1}).Build()
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "Values called before Columns")
 }
 
 func TestMultiInsertFloat(t *testing.T) {
 	t.Parallel()
 	i := new(Inserter)
-	assert.NotNil(t, i)
-
-	tableName := "xyz"
-	columns := []string{"field1", "field2"}
 
 	data := []map[string]interface{}{
 		{"field1": 34.5, "field2": "asdf"},
 		{"field1": 12.3, "field2": "qwer"},
-		{"field1": 23.4, "field2": "zxcv"},
-		{"field1": 45.6, "field2": "fgjh"},
-		{"field1": 56.7, "field2": "ghjk"},
-		{"field1": 67.8, "field2": "kjgg"},
 	}
-	sql := i.Table(tableName).Columns(columns)
+	stmt := i.Table("xyz").Columns([]string{"field1", "field2"})
 	for _, item := range data {
-		sql.Values(item)
+		stmt.Values(item)
 	}
-	builtSQL := sql.Build()
-	assert.NotNil(t, builtSQL)
-	assert.Equal(t, "INSERT INTO xyz ( field1, field2 ) values (34.5, 'asdf'),(12.3, 'qwer'),(23.4, 'zxcv'),(45.6, 'fgjh'),(56.7, 'ghjk'),(67.8, 'kjgg');", builtSQL)
+	sql, args, err := stmt.Build()
+	assert.NoError(t, err)
+	assert.Equal(t, "INSERT INTO xyz ( field1, field2 ) values (?, ?),(?, ?);", sql)
+	assert.Equal(t, []any{34.5, "asdf", 12.3, "qwer"}, args)
 }

@@ -1,13 +1,15 @@
 package builder
 
-// Expression interface defines the methods to be used to evaluate a meaningful evaluate clause
+// Expression interface defines the methods to be used to evaluate a
+// where clause. Express returns the SQL fragment with `?` placeholders
+// and the captured args in left-to-right order.
 type Expression interface {
 	Where(clause Clause) Expression
 	And(clause Clause) Expression
 	Or(clause Clause) Expression
-	In(field string, items ...string) Expression
-	NotIn(field string, items ...string) Expression
-	Express() string
+	In(field string, items ...any) Expression
+	NotIn(field string, items ...any) Expression
+	Express() (string, []any, error)
 }
 
 // Clause is used to set a where, and, or clause

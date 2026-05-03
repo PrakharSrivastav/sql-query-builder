@@ -5,11 +5,12 @@ This package can be best used with the scenarios where the structure of the doma
 package qb
 
 import (
-	"errors"
+	"fmt"
 	"sync"
 
 	"github.com/PrakharSrivastav/sql-query-builder/qb/ansi"
 	"github.com/PrakharSrivastav/sql-query-builder/qb/core"
+	"github.com/PrakharSrivastav/sql-query-builder/qb/postgres"
 )
 
 var once sync.Once
@@ -33,9 +34,13 @@ func NewSingletonQueryBuilder(driver int) (*core.SQL, error) {
 
 func dbFactory(driver int) (*core.SQL, error) {
 	switch driver {
-	case core.ANSI:
+	case core.ANSI, core.MYSQL, core.SQLITE:
+		// MySQL and SQLite both accept ANSI's `?` placeholder and the
+		// validated identifier shape; ANSI output is portable to them.
 		return ansi.NewANSIBuilder()
+	case core.PGSQL:
+		return postgres.NewPostgresBuilder()
 	default:
-		return nil, errors.New("Unsupported database driver")
+		return nil, fmt.Errorf("qb: unsupported dialect %d (expected one of core.ANSI, core.PGSQL, core.MYSQL, core.SQLITE)", driver)
 	}
 }

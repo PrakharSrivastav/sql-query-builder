@@ -12,14 +12,13 @@ const (
 	MYSQL
 	// SQLITE adheres to sqlite dialect
 	SQLITE
-	// MONGO adheres to MongoDB dialect
-	MONGO
 )
 
 // SQL is wrapper for different driver implementations
 type SQL struct {
-	Reader   builder.Reader
-	Inserter builder.Inserter
-	Updater  builder.Updater
-	Creater  builder.Creater
+	Reader        builder.Reader
+	Inserter      builder.Inserter
+	Updater       builder.Updater
+	Creater       builder.Creater
+	NewExpression func() builder.Expression
 }

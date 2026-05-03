@@ -1,6 +1,8 @@
 package builder
 
-// Reader provides a contract to be implemented by all sql generators
+// Reader provides a contract to be implemented by all sql generators.
+// Build returns the SQL with `?` placeholders for values, the args slice
+// to pass to db.Exec/Query, and any identifier-validation error.
 type Reader interface {
 	Select(...string) Reader
 	From(...string) Reader
@@ -16,7 +18,7 @@ type Reader interface {
 	On(string) Reader
 	GroupBy([]string) Reader
 	Having(string) Reader
-	Build() string
+	Build() (string, []any, error)
 }
 
 // Alias is a struct to provide a table name alias
