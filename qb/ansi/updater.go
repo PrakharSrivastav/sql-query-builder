@@ -11,17 +11,37 @@ import (
 
 // Updater helps in creating parameterized UPDATE statements.
 type Updater struct {
-	sql  bytes.Buffer
-	args []any
-	errs []error
+	sql       bytes.Buffer
+	args      []any
+	returning []string
+	errs      []error
 }
 
 // Build returns the SQL, args (SET values first, then condition args)
 // and any identifier-validation error.
 func (u *Updater) Build() (string, []any, error) {
+	if len(u.returning) > 0 {
+		u.sql.WriteString(" RETURNING ")
+		u.sql.WriteString(strings.Join(u.returning, seperator))
+	}
 	u.sql.WriteString(" ;")
 	args := append([]any(nil), u.args...)
 	return u.sql.String(), args, joinErrors(u.errs)
+}
+
+// Returning records columns for a RETURNING clause. Single `*` is
+// accepted; everything else is validated as an identifier.
+func (u *Updater) Returning(cols ...string) builder.Updater {
+	for _, c := range cols {
+		if c == "*" {
+			continue
+		}
+		if err := validateIdentifier(c); err != nil {
+			u.errs = append(u.errs, err)
+		}
+	}
+	u.returning = append(u.returning, cols...)
+	return u
 }
 
 // Condition merges an Expression's SQL fragment and args.
@@ -72,6 +92,7 @@ func (u *Updater) Set(values map[string]interface{}) builder.Updater {
 func (u *Updater) Update(table string) builder.Updater {
 	u.sql.Reset()
 	u.args = u.args[:0]
+	u.returning = nil
 	u.errs = nil
 	if err := validateIdentifier(table); err != nil {
 		u.errs = append(u.errs, err)

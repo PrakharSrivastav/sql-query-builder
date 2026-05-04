@@ -17,6 +17,18 @@ func (i *Inserter) Values(v builder.Value) builder.Inserter {
 	return i
 }
 func (i *Inserter) Table(s string) builder.Inserter { i.inner.Table(s); return i }
+func (i *Inserter) Returning(cols ...string) builder.Inserter {
+	i.inner.Returning(cols...)
+	return i
+}
+func (i *Inserter) OnConflictDoNothing(targets ...string) builder.Inserter {
+	i.inner.OnConflictDoNothing(targets...)
+	return i
+}
+func (i *Inserter) OnConflictDoUpdate(targets []string, set map[string]interface{}) builder.Inserter {
+	i.inner.OnConflictDoUpdate(targets, set)
+	return i
+}
 
 func (i *Inserter) Build() (string, []any, error) {
 	sql, args, err := i.inner.Build()

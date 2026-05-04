@@ -28,24 +28,32 @@ func NewPostgresBuilder() (*core.SQL, error) {
 }
 
 // rewritePlaceholders substitutes each `?` in sql with `$1`, `$2`, ...
-// in left-to-right order. It does not parse strings or comments — this
-// builder never emits `?` inside string literals because string values
-// always go through the args slice.
+// in left-to-right order.
+//
+// The builder itself never emits `?` inside SQL string literals
+// (values always go through the args slice), so this function does not
+// parse strings or comments. Callers using RawCondition in the Postgres
+// dialect must therefore avoid literal `?` characters inside the raw
+// fragment — including inside string literals and Postgres JSON
+// existence operators (`?`, `?|`, `?&`). Use the parameterized
+// Condition path or stage the operator outside this builder.
 func rewritePlaceholders(sql string) string {
-	if !strings.ContainsRune(sql, '?') {
+	if strings.IndexByte(sql, '?') < 0 {
 		return sql
 	}
 	var b strings.Builder
 	b.Grow(len(sql) + 8)
 	n := 1
-	for _, r := range sql {
-		if r == '?' {
-			b.WriteByte('$')
-			b.WriteString(strconv.Itoa(n))
-			n++
-			continue
+	for {
+		idx := strings.IndexByte(sql, '?')
+		if idx < 0 {
+			b.WriteString(sql)
+			return b.String()
 		}
-		b.WriteRune(r)
+		b.WriteString(sql[:idx])
+		b.WriteByte('$')
+		b.WriteString(strconv.Itoa(n))
+		n++
+		sql = sql[idx+1:]
 	}
-	return b.String()
 }

@@ -125,6 +125,57 @@ func TestPostgresReader_AllFluentMethods(t *testing.T) {
 
 // TestPostgresUpdater_RawCondition exercises the postgres Updater's
 // RawCondition delegate.
+func TestPostgresInserter_Returning(t *testing.T) {
+	t.Parallel()
+	sqlb, err := NewPostgresBuilder()
+	assert.NoError(t, err)
+
+	sql, args, err := sqlb.Inserter.
+		Table("users").
+		Columns([]string{"name"}).
+		Values(builder.Value{"name": "alice"}).
+		Returning("id", "created_at").Build()
+	assert.NoError(t, err)
+	assert.Equal(t, "INSERT INTO users ( name ) values ($1) RETURNING id, created_at;", sql)
+	assert.Equal(t, []any{"alice"}, args)
+}
+
+func TestPostgresInserter_OnConflictDoUpdate_Excluded(t *testing.T) {
+	t.Parallel()
+	sqlb, err := NewPostgresBuilder()
+	assert.NoError(t, err)
+
+	sql, args, err := sqlb.Inserter.
+		Table("users").
+		Columns([]string{"name"}).
+		Values(builder.Value{"name": "alice"}).
+		OnConflictDoUpdate([]string{"id"}, map[string]interface{}{
+			"name":       builder.Excluded{Col: "name"},
+			"updated_at": 12345,
+		}).
+		Returning("id").Build()
+	assert.NoError(t, err)
+	assert.Equal(t, "INSERT INTO users ( name ) values ($1) ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, updated_at = $2 RETURNING id;", sql)
+	assert.Equal(t, []any{"alice", 12345}, args)
+}
+
+func TestPostgresUpdater_Returning(t *testing.T) {
+	t.Parallel()
+	sqlb, err := NewPostgresBuilder()
+	assert.NoError(t, err)
+
+	expr := sqlb.NewExpression().
+		Where(builder.Clause{Left: "id", Operator: "=", Right: 42})
+	sql, args, err := sqlb.Updater.
+		Update("users").
+		Set(map[string]interface{}{"name": "alice"}).
+		Condition(expr).
+		Returning("id").Build()
+	assert.NoError(t, err)
+	assert.Equal(t, "UPDATE users SET name=$1 WHERE (id = $2) RETURNING id ;", sql)
+	assert.Equal(t, []any{"alice", 42}, args)
+}
+
 func TestPostgresUpdater_RawCondition(t *testing.T) {
 	t.Parallel()
 	sqlb, err := NewPostgresBuilder()
@@ -145,4 +196,21 @@ func TestRewritePlaceholders_Standalone(t *testing.T) {
 	assert.Equal(t, "no markers", rewritePlaceholders("no markers"))
 	assert.Equal(t, "$1 $2 $3", rewritePlaceholders("? ? ?"))
 	assert.Equal(t, "a=$1 AND b=$2", rewritePlaceholders("a=? AND b=?"))
+	assert.Equal(t, "", rewritePlaceholders(""))
+	assert.Equal(t, "$1", rewritePlaceholders("?"))
+	// Adjacent and trailing placeholders.
+	assert.Equal(t, "$1$2", rewritePlaceholders("??"))
+	assert.Equal(t, "x=$1", rewritePlaceholders("x=?"))
+}
+
+// TestRewritePlaceholders_RawConditionCollision documents (and pins)
+// the known limitation: any `?` inside a RawCondition gets rewritten,
+// including inside string literals and Postgres JSON `?` operators.
+// Use the parameterized Condition path to avoid this.
+func TestRewritePlaceholders_RawConditionCollision(t *testing.T) {
+	t.Parallel()
+	// `?` inside a string literal is rewritten — broken SQL.
+	assert.Equal(t, "WHERE name = 'who$1'", rewritePlaceholders("WHERE name = 'who?'"))
+	// JSON existence operator `?` is rewritten — broken SQL.
+	assert.Equal(t, "WHERE data $1 'key'", rewritePlaceholders("WHERE data ? 'key'"))
 }

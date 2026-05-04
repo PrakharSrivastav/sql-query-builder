@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "testcontainers-go": {
+      "source": "linehaul-ai/linehaulai-claude-marketplace",
+      "sourceType": "github",
+      "skillPath": "plugins/testcontainers-go/skills/testcontainers-go/SKILL.md",
+      "computedHash": "e59f3ce3156484deb720c1e60ac5b37488163024331db5733226bd22a7b9d4a4"
+    }
+  }
+}

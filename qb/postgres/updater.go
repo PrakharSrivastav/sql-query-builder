@@ -21,6 +21,10 @@ func (u *Updater) Condition(e builder.Expression) builder.Updater {
 	return u
 }
 func (u *Updater) RawCondition(s string) builder.Updater { u.inner.RawCondition(s); return u }
+func (u *Updater) Returning(cols ...string) builder.Updater {
+	u.inner.Returning(cols...)
+	return u
+}
 
 func (u *Updater) Build() (string, []any, error) {
 	sql, args, err := u.inner.Build()

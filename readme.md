@@ -45,7 +45,7 @@ _, err = db.Exec(sql, args...)
 ### Safety boundaries
 
 - **Values** — `Clause.Right`, `Set` map values, `Insert.Values`, `In`/`NotIn` items: bound via `?`. Safe for untrusted input.
-- **Validated identifiers** — `Update` table, `Insert.Table`, `Insert.Columns`, `Set` keys, `Where` / `And` / `Or` / `In` / `NotIn` left-hand side, `Creater.Table`, `Creater.SetColumns[i].Name`: must match `[A-Za-z_][A-Za-z0-9_]*` (optionally one `.` qualifier). Violations surface from `Build()` as an error.
+- **Validated identifiers** — `Update` table, `Insert.Table`, `Insert.Columns`, `Set` keys, `Where` / `And` / `Or` / `In` / `NotIn` left-hand side, `Creater.Table`, `Creater.SetColumns[i].Name`, `Returning` columns, `OnConflict` targets and set keys, `Excluded.Col`: must be either a bare identifier `[A-Za-z_][A-Za-z0-9_]*` or a SQL-standard delimited identifier `"..."` (with embedded `"` doubled as `""`), optionally with one schema/table qualifier (`schema.table`, `"schema"."table"`). Violations surface from `Build()` as an error.
 - **Caller-trusted free-form** — `Select` args, `From`, `OrderBy`, `GroupBy`, `Having`, `On`, joins, `FromAlias` names, `RawCondition`, `Creater.Columns.Datatype` and `.Constraint`: written verbatim. Do not pass untrusted input here.
 
 Special mention to the [Beego](https://beego.me/docs/mvc/model/querybuilder.md) framework. The Reader interface in this project is highly inspired by Beego's Query Builder interface. However, this project introduces other interfaces (Inserter, Creater, Updater) to compliment more db scripting scenrios.
@@ -60,20 +60,17 @@ There are other interesting projects that touch the same idea notably, but they 
 | Dialect | Constant | Placeholders | Notes |
 |---|---|---|---|
 | ANSI | `core.ANSI` | `?` | Default. Portable to most drivers. |
-| PostgreSQL | `core.PGSQL` | `$1, $2, ...` | Rewrites placeholders at `Build()`. **Otherwise identical to ANSI** — see scope below. |
+| PostgreSQL | `core.PGSQL` | `$1, $2, ...` | Rewrites placeholders at `Build()`. **Otherwise identical to ANSI** — see scope below. **Caveat:** any literal `?` inside a `RawCondition` is rewritten too, so avoid string literals containing `?` and the JSON existence operators (`?`, `?|`, `?&`) in raw fragments. Use the parameterized `Condition` path instead. |
 | MySQL | `core.MYSQL` | `?` | Falls through to ANSI. |
 | SQLite | `core.SQLITE` | `?` | Falls through to ANSI. |
 
 ### What's actually in scope
 
-This package generates **simple, portable DDL/DML**: `SELECT` (with WHERE/JOIN/GROUP BY/HAVING/ORDER BY/LIMIT/OFFSET), `INSERT`, `UPDATE`, `CREATE TABLE`. Values are parameterized; identifiers are validated. That's it.
+This package generates **simple, portable DDL/DML**: `SELECT` (with WHERE/JOIN/GROUP BY/HAVING/ORDER BY/LIMIT/OFFSET), `INSERT` (with optional `RETURNING` and `ON CONFLICT DO NOTHING/DO UPDATE`), `UPDATE` (with optional `RETURNING`), `CREATE TABLE`. Values are parameterized; identifiers are validated. That's it.
 
 The Postgres dialect today differs from ANSI **only in placeholder syntax**. The following Postgres-specific features are **not implemented** — use `RawCondition` as an escape hatch, or another library if you need them as first-class:
 
-- `RETURNING` clause
-- `ON CONFLICT (...) DO UPDATE / DO NOTHING` (upsert)
 - `ILIKE`, array operators (`@>`, `&&`, `ANY`, `ALL`)
-- Identifier quoting for reserved words (the validator rejects them outright)
 - Multi-level schema qualification (only `schema.table` — not `db.schema.table`)
 - `WITH` (CTE), window functions, `EXCLUDED.*`
 - Cast syntax `value::type`

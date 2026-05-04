@@ -1,1 +1,7 @@
 .vscode
+
+# Claude Code project artifacts
+.claude/
+.claude.json
+CLAUDE.md
+CLAUDE.local.md

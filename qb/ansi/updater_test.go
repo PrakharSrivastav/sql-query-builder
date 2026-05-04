@@ -43,6 +43,27 @@ func TestSUpdateWithRawCondition(t *testing.T) {
 	assert.Equal(t, []any{"value1", 123, 321.123}, args)
 }
 
+func TestUpdateReturning(t *testing.T) {
+	t.Parallel()
+	u := new(Updater)
+	sql, args, err := u.Update("users").
+		Set(map[string]interface{}{"name": "alice"}).
+		Returning("id", "updated_at").Build()
+	assert.NoError(t, err)
+	assert.Equal(t, "UPDATE users SET name=? RETURNING id, updated_at ;", sql)
+	assert.Equal(t, []any{"alice"}, args)
+}
+
+func TestUpdateReturningBadIdentifierErrors(t *testing.T) {
+	t.Parallel()
+	u := new(Updater)
+	_, _, err := u.Update("users").
+		Set(map[string]interface{}{"name": "alice"}).
+		Returning("id; DROP TABLE users;--").Build()
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "invalid sql identifier")
+}
+
 func TestUpdateWithCondition(t *testing.T) {
 	t.Parallel()
 	u := new(Updater)
